@@ -37,7 +37,7 @@ key=
 
 # Prints usage to standard out
 function usage {
-    echo -e "passman -k [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]"
+    echo -e "passman -k KEY [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]"
     echo "    -k: password identifier key (required)"
     echo "    -p: encrypted password database file (optional)"
     echo "    -f: gpg public key (optional)"
