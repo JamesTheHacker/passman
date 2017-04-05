@@ -23,6 +23,7 @@ The following dependencies must be installed for PassMan to work. These can be i
     * bash
     * gpg
     * pwgen
+    * pbcopy
 
 ## Installation
 
@@ -114,7 +115,7 @@ PassMan is only as strong as the system using it. If your system has been attack
 Here's some tips to help keep you safe:
 
 * **NEVER SHARE YOUR PRIVATE KEY!**
-* When generating a PGP key ensure your password is very strong! The longer the better!
+* When generating a key ensure your password is very strong! The longer the better!
 * Backup your private and public keys onto physical media. If you're super paranoid print them off as QR codes and store them in a safe.
 * Make regular backups of password database/s in the event of system failure, nature disaster, etc.
 
@@ -128,6 +129,6 @@ This script has only been tested on OSX 10.10.5. If you could test it on your ow
 
 ## A Word From The Author ...
 
-As I write this the UK Government are battling to ban encryption. Apparently to help fight terrorism and keep us safe. In 2017 our security and privacy is at risk. I urge everyone to exercise their right to privacy. Even if it's against the will of higher powers. I'm just your average Joe doing his part to help. Keep fighting the good war.
+As I write this the UK Government are battling to ban encryption. Apparently to help fight terrorism and keep us safe. In 2017 our security and privacy are at risk. I urge everyone to exercise their right to privacy. Even if it's against the will of higher powers. I'm just your average Joe doing his part to help. Keep fighting the good war.
 
 If you'd like to contact me, add `@thunderkat` on [Wire](https://app.wire.com/).
