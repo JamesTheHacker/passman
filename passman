@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+#
+# Author:       James Jeffery
+# Email:        jameslovescode@gmail.com
+# Date:         05/03/2017
+# Usage:        passman -k [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]
+
+########################
+# VARIABLES
+##########################
+
+# Users home directory. We store important files here.
+user_home=$(eval echo ~$USERNAME)
+
+# Default passman password file location
+pass_db="$user_home/.passman_db"
+
+# Sets the default public key file location
+pubkey="$user_home/.passman_pk"
+
+# Set the default password length
+pass_len=85
+
+# Sets the default mode
+# Modes:
+#   new:    Creates a new password, saves to the password database, and copies to clipboard
+#   get:    Fetches a password by key from the password database
+#   del:    Deletes a password from the password database
+mode="new"
+
+# This key is used to identify what password to load
+key=
+
+#########################
+# FUNCTIONS
+#########################
+
+# Prints usage to standard out
+function usage {
+    echo -e "passman -k [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]"
+    echo "    -k: password identifier key (required)"
+    echo "    -p: encrypted password database file (optional)"
+    echo "    -f: gpg public key (optional)"
+    echo "    -l: password length (optional)"
+    echo "    -m: mode: new (default), del, get (optional)"
+    exit
+}
+
+# Gets a password by key from encrypted password database
+function get_password {
+    local key=$1
+    local pass_db=$2
+    local pubkey=$3
+    
+    # Decode encrypted password file and store location 
+    local tmp_db=$(decrypt_pass_db $pass_db $pubkey)
+
+    # Use awk to parse the CSV and find the password by key
+    local pass=$(awk -F"$key," '{printf $2}' $tmp_db)
+    
+    # If password is found print to stdout. This avoids a newline being printed if no match is found
+    [ $pass ] && echo $pass
+    
+    # Cleanup and delete the tmp file
+    rm $tmp_db
+}
+
+# Decodes the encrypted pass_db and stores it in a temporary file.
+# Calling code should delete the temp file when done.
+function decrypt_pass_db {
+    local pass_db=$1
+    local pubkey=$2
+
+    # Create a temporary file to store decrypted pass_db
+    local tmp_db=$(mktemp /tmp/tmp.XXXXXXXXXXXXXXXXXXXXX)
+
+    # Set permissions
+    chmod 600 $tmp_db
+
+    # Decrypt pass_db
+    gpg --quiet --recipient-file $pubkey --decrypt $pass_db > $tmp_db
+    
+    echo $tmp_db
+}
+
+# Saves password to encrypted password database
+function save_password {
+    local key=$1
+    local pass=$2
+    local pass_db=$3
+    local pubkey=$4
+
+    # Create a temporary file
+    local tmp_db=$(decrypt_pass_db $pass_db $pubkey)
+    
+    # Does the password already exist?
+    if [ $(get_password $key $pass_db $pubkey) ]
+    then
+        echo "Password with $key already exists."
+        rm $tmp_db
+        exit 1
+    fi
+    
+    # Append new password
+    echo "$key,$pass" >> $tmp_db
+    
+    # Encrypt the pass_db
+    gpg --yes --recipient-file $pubkey --output $pass_db --encrypt $tmp_db
+
+    # Kill the temp password file with fire!
+    rm $tmp_db
+}
+
+# Delete a password
+function delete_password {
+    local key=$1
+    local pass_db=$2
+    local pubkey=$3
+
+    # Decrypt password into temporary directory
+    local tmp_db=$(decrypt_pass_db $pass_db $pubkey)
+   
+    # Remove the password from the file
+    sed "/$key/d" $tmp_db > $tmp_db
+    
+    # Encrypt the password file and save to pass_db
+    gpg --yes --recipient-file $pubkey --output $pass_db --encrypt $tmp_db
+
+    # Cleanup
+    rm $tmp_db
+}
+
+#########################
+# MAIN
+#########################
+
+# Get option from the command line
+while getopts k:p:f:l:m: pm_opts 2>/dev/null
+do
+    case $pm_opts in
+       k) key=$OPTARG           # Password key for fetching passwords 
+            ;;
+       p) pass_db=$OPTARG       # Encrypted password file
+            ;;
+       f) pubkey=$OPTARG        # Public key file
+            ;;
+       l) pass_len=$OPTARG      # Length of password to generate
+            ;;
+       m) mode=$OPTARG          # Program mode
+            ;;
+       ?) usage
+    esac
+done
+
+# Check if the key is set. This is required for both saving and fetching a password
+if [ -z "$key" ]
+then
+    usage
+fi
+
+# Check if pubkey exists
+if [ ! -e $pubkey ]
+then
+    echo "Public key $pubkey does not exist!"
+    read -p "Do you want to create a new key in this location? (y/n): " yn
+    
+    # Ask the user if they want to create the pubkey
+    if [ "$yn" == "y" ]
+    then
+        # Generate new gpg key and extract the fingerprint
+        fingerprint=$(gpg --full-generate-key | grep -m 1 -o "[A-Z0-9]\{40\}")
+
+        # Export the public key to file
+        gpg --armor --export $fingerprint > $pubkey
+
+        # Set key file permissions
+        chmod 600 $pubkey
+    else
+        exit
+    fi
+fi
+
+# If pass_db file does not exist, ask the user if they want to create one
+if [ ! -e $pass_db ]
+then
+    echo "Encrypted password database $pass_db does not exist!"
+    read -p "Do you want to create a new database in this location? (y/n): " yn
+
+    if [ "$yn" == "y" ]
+    then
+        # Create a new encrypted password file
+        echo "" | gpg --recipient-file $pubkey --output $pass_db --encrypt
+
+        # Set pass_db permissions
+        chmod 600 $pass_db
+    else
+        exit
+    fi
+fi
+
+# Generate a random password of x length
+pass=$(pwgen -s -1 $pass_len)
+
+# Perform an action based on the mode
+case "$mode" in
+    new)
+        save_password $key $pass $pass_db $pubkey
+        echo $pass | pbcopy
+            ;;
+    del) delete_password $key $pass_db $pubkey
+            ;;
+    get) get_password $key $pass_db $pubkey
+            ;;
+esac
