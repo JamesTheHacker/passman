@@ -8,7 +8,7 @@ PassMan was created out of frustration. For years I've been using encrypted file
 
 PassMan stores passwords in an encrypted file as csv and allows you to **add**, **retrieve** and **delete** passwords. When a password is generated, or retrieved, it's automatically copied into your clipboard for ease of use. Cool right?
 
-I decided to use `gpg` for encryption/decryption because it's very secure (assuming host machine is secure and user password is strong). You can pass the database around securely in emails, or on a USB stick, with no chance of an attacker ever seeing what's inside it. At least not in your lifetime.
+I decided to use `gpg` for encryption/decryption because it's very secure (assuming host machine is secure and user password is strong). You can pass the database around securely in emails, or on a USB stick, with no chance of an attacker ever seeing what's inside it. At least not in your lifetime. To learn more about `gpg` checkout the [handbook](https://www.gnupg.org/gph/en/manual.html).
 
 The password database is encrypted/decrypted using [public key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography). PassMan can generate the public/private keys for you, or you can pass in your own.
 
