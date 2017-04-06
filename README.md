@@ -1,6 +1,6 @@
 # PassMan - Easy, Secure, Password Manager
 
-PassMan is a secure, and easy to use password manager that runs on the terminal! It's also written in [bash](https://www.gnu.org/software/bash/). Oh, and did I mention it's secure?
+PassMan is a secure, and easy to use password manager that runs on the terminal! It's also written in [bash](https://www.gnu.org/software/bash/).
 
 ## How PassMan Works ...
 
@@ -11,10 +11,6 @@ PassMan stores passwords in an encrypted file as csv and allows you to **add**, 
 I decided to use `gpg` for encryption/decryption because it's very secure (assuming host machine is secure and user password is strong). You can pass the database around securely in emails, or on a USB stick, with no chance of an attacker ever seeing what's inside it. At least not in your lifetime. To learn more about `gpg` checkout the [handbook](https://www.gnupg.org/gph/en/manual.html).
 
 The password database is encrypted/decrypted using [public key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography). PassMan can generate the public/private keys for you, or you can pass in your own.
-
-**Can I use a password instead of a public key cryptography?**
-
-You can. But not on my watch! Whilst this may seem convenient it weakens security. I do not support this practice, thus I have not included it. I hope you understand. It's for the best.
 
 ## Dependencies
 
@@ -110,7 +106,7 @@ You must use the `-p` and `-f` option for every command when using a custom key 
 
 ## Security Tips
 
-PassMan is only as strong as the system using it. If your system has been attacked it's possible the attacker could steal your private keys, but the attacker would still need to know the password to decrypt the password database. For most use cases this is satisfactory.
+PassMan is only as strong as the system using it. 
 
 Here's some tips to help keep you safe:
 
@@ -118,6 +114,11 @@ Here's some tips to help keep you safe:
 * When generating a key ensure your password is very strong! The longer the better!
 * Backup your private and public keys onto physical media. If you're super paranoid print them off as QR codes and store them in a safe.
 * Make regular backups of password database/s in the event of system failure, nature disaster, etc.
+* Encrypt your swap space
+
+## Issues
+
+The unencrypted password database is briefly stored in a `/tmp` using `mktemp`. It is possible under certain conditions for this password to end up in swap space. This isn't idea if your swap space is not encrypted. I am working on fixing this.
 
 ## Contributing
 
