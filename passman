@@ -3,7 +3,7 @@
 # Author:       James Jeffery
 # Email:        jameslovescode@gmail.com
 # Date:         05/03/2017
-# Usage:        passman -k KEY [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]
+# Usage:        passman -k KEY [-d PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-p PASSWORD] [-m MODE]
 
 ##########################
 # VARIABLES
@@ -21,11 +21,15 @@ pubkey="$user_home/.passman_pk"
 # Set the default password length
 pass_len=85
 
+# User defined password used for adding existing passwords to db
+pass=
+
 # Sets the default mode
 # Modes:
 #   new:    Creates a new password, saves to the password database, and copies to clipboard
 #   get:    Fetches a password by key from the password database
 #   del:    Deletes a password from the password database
+#   add:    Add an existing password to the database
 mode="new"
 
 # This key is used to identify what password to load
@@ -37,12 +41,13 @@ key=
 
 # Prints usage to standard out
 function usage {
-    echo "passman -k KEY [-p PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-m MODE]"
+    echo "passman -k KEY [-d PASS_DB] [-f PUBLIC_KEY] [-l PASS_LEN] [-p PASSWORD] [-m MODE]"
     echo "    -k: password identifier key (required)"
-    echo "    -p: encrypted password database file (optional)"
+    echo "    -d: encrypted password database file (optional)"
     echo "    -f: gpg public key (optional)"
     echo "    -l: password length (optional)"
-    echo "    -m: mode: new (default), del, get (optional)"
+    echo "    -p: user provided password (required for add mode)"
+    echo "    -m: mode: new (default), del, get, add"
     exit
 }
 
@@ -137,13 +142,15 @@ do
     case $pm_opts in
        k) key=$OPTARG           # Password key for fetching passwords 
             ;;
-       p) pass_db=$OPTARG       # Encrypted password file
+       d) pass_db=$OPTARG       # Encrypted password file
             ;;
        f) pubkey=$OPTARG        # Public key file
             ;;
        l) pass_len=$OPTARG      # Length of password to generate
             ;;
        m) mode=$OPTARG          # Program mode
+            ;;
+       p) pass=$OPTARG          # User supplied password
             ;;
        ?) usage
     esac
@@ -195,17 +202,18 @@ then
     fi
 fi
 
-# Generate a random password of x length
-pass=$(pwgen -s -1 $pass_len)
-
 # Perform an action based on the mode
 case "$mode" in
     new)
+        # Generate a random password of x length
+        pass=$(pwgen -s -1 $pass_len)
         save_password $key $pass $pass_db $pubkey
         echo $pass | pbcopy
             ;;
     del) delete_password $key $pass_db $pubkey
             ;;
     get) get_password $key $pass_db $pubkey
+            ;;
+    add) save_password $key $pass $pass_db $pubkey
             ;;
 esac
