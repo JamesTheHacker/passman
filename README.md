@@ -75,6 +75,12 @@ By default the length of generated passwords is `85` characters. If you'd like t
 
 The `-l` option allows you to specify a password length.
 
+**Add Existing Password**
+
+To store an existing password use the following command:
+
+    passman -k facebook -p "mysecretpassword" -m add
+
 **Fetch A Stored Password**
 
     passman -k facebook -m get
@@ -100,9 +106,9 @@ New password is now in the clipboard and can be used with `CTRL+V`
 
 You can specify your own public key, and password database, like so:
 
-    passman -k facebook -p ~/path/to/password_db -f ~/path/to/public_key
+    passman -k facebook -d ~/path/to/password_db -f ~/path/to/public_key
 
-You must use the `-p` and `-f` option for every command when using a custom key and/or database.
+You must use the `-d` and `-f` option for every command when using a custom key and/or database.
 
 ## Security Tips
 
